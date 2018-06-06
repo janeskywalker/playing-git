@@ -1,0 +1,209 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>task10</title>
+
+		<style>
+
+	</style>
+</head>
+
+
+<body>
+
+<input id="post-data" data-bind="stocks.donkey"/>
+
+<div data-bind='stocks.donkey'>0</div>
+<div data-bind='stocks.cat'>0</div>
+
+<p data-bind='stocks.microsoft'>0</p>
+<p data-bind='stocks.microsoft'>0</p>
+
+<p data-bind='weather.temperature'>0</p>
+<p data-bind='weather.wind'>0</p>
+
+<script>
+
+function isDefined(obj) {
+	return obj !== undefined
+}
+
+// Input data bind should update the data when value of input changes (addEventListener)
+// You are going to have to check the type of the elements in elementList to see if input element (element.tagName)
+// If input element addEventListener and update data (for given key) when input happens
+// When updating the values of elements you will have to start checking tagName to set innerText for some elements and value for others.
+
+
+
+// This function needs to find all data-bind elements and keep them up-to-date with data as it is set
+function createStore(storeName) {
+
+	const elementList = document.querySelectorAll('[data-bind]')
+	console.log(elementList)
+
+	// Saves elements by key name
+	const elementsByName = {}
+	// Saves watch functions by key name
+	const functionsByName = {}
+
+	// Filter out ones that don't belong to this store name 
+	elementList.forEach((next) => {
+		// get values of all the attribute data-binding
+		const binding = next.getAttribute('data-bind')
+		
+		const [ nameKey, valueKey ] = binding.split('.')
+
+		if(storeName === nameKey) {
+			// Have we encountered this value before -- no need to add key microsoft twice, same value 
+			if (elementsByName[valueKey] === undefined) {
+				// assign value as a key, and the set the value of the key as an array
+				elementsByName[valueKey] = []
+			}
+			// push the element into the value array
+			elementsByName[valueKey].push(next)
+			console.log( `elements for ${valueKey}:`, elementsByName[valueKey])
+		}
+	})
+	console.log('elementsByName: ', elementsByName)
+
+
+
+
+	// 2. Store data in an object
+	const data = {}
+
+
+
+	return {
+		// This function needs to set the value in the data store and update any view data-bind values.
+		set(key, value) {
+			// check if data has changed 
+			//if (data[key] !== value) {
+				data[key] = value
+				//console.log(`elements for ${key}: `, elementsByName[key])
+
+				elementsByName[key].forEach((next) => {
+					// render the view
+					next.innerText = value
+					console.log(`data[${storeName}]: `, data)			
+				})
+
+				// when set is called, value is changed, set up function watch to watch the value changing 
+				// check if the function is saved/defined in the object -- bacause only the function what is saved in the funcitonsByName will run, meaning a wather is set up to that key 
+				// if (typeof watchers[key] === 'function')
+
+				if (functionsByName[key] !== undefined) {
+					// if it is, call the function, passing key value as an argument. You don't call function watch, you call the funciton that user set and you saved in the objects.
+					functionsByName[key].forEach((next) =>{
+						next(value)
+					})
+
+				}
+			//}
+		},
+
+		get(key){
+			return data[key]
+		},
+
+		// 1. Add a new function (watch) to allow users/consumers to watch values (keys)
+		// 2. The funtion (fn) will run everytime the value of key changes (is set) =>  // 6.
+		// 3. You're going to have to save the function (fn) until somebody calls set with the given key
+		// 4. You're going to make an object like you do for elementsByName -- that is you are going to make an object where the key to watch is a property and the value is the function to call.
+		// 6. The set method will need to be updated to call functions for values that are being watched.
+
+
+
+		watch(key, fn) {
+
+			if (functionsByName[key] === undefined){
+				functionsByName[key] = []
+				functionsByName[key].push(fn)
+			}
+
+			else {
+				functionsByName[key].push(fn)
+			}
+
+		}
+	}
+}
+
+
+// to set value
+
+const stocks = createStore('stocks')
+stocks.set('microsoft', 1002)
+stocks.set('donkey', 'I am a donkey')
+stocks.set('cat', 'perrrrr')
+stocks.get('cat')
+
+
+
+const weather = createStore('weather')
+weather.set('temperature', 94 +' farenheit')
+weather.set('wind', 2 + ' mph')
+
+
+
+// input update the setting data 
+
+const postData = document.getElementById('post-data')
+
+postData.addEventListener('input', (evt) => {
+	stocks.set('donkey', evt.target.value)
+})
+
+
+
+// This function is to to check if input element change, addEventListener to update data
+function inputChange(key){
+	// check element type, is it input?
+	
+	// addEventListener to update data 
+	element.addEventListener('',(evt) => {
+
+	})
+
+}
+
+
+// set up a watcher for key donkey to watch the value change, everytime value of donkey change, run this fn
+stocks.watch('donkey', (val) => {
+	console.log('watcher 1: ', val)
+
+})
+
+
+
+stocks.watch('donkey', (val) => {
+	console.log('watcher 2: ', val)
+})
+
+
+
+
+
+
+// update view
+function refresh() {
+
+	setTimeout(() => {
+		stocks.set('microsoft', Math.floor(950 + Math.random() * 70))
+		stocks.get('cat')
+	}, 2000)
+}
+
+refresh()
+
+
+
+</script>
+
+
+
+</body>
+</html>
